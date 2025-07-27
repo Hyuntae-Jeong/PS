@@ -1,0 +1,50 @@
+package BKJ_1259;
+
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Objects;
+
+class Main {
+    static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+    static char[] numberArray;
+    static int numberLength, pointer;
+
+    public static void main(String[] args) throws IOException {
+        String number;
+        StringBuilder sb = new StringBuilder();
+
+        while (true) {
+            number = br.readLine();
+            if (number.equals("0")) break;
+
+            if (judgePalindromic(number)) sb.append("yes\n");
+            else sb.append("no\n");
+        }
+
+        System.out.println(sb);
+    }
+
+    public static boolean judgePalindromic(String number) {
+        numberArray = number.toCharArray();
+        numberLength = numberArray.length - 1;
+        pointer = 0;
+
+        while (pointer <= (numberLength) / 2) {
+            if (! Objects.equals(numberArray[pointer], numberArray[numberLength - pointer])) {
+                return false;
+            }
+            pointer++;
+        }
+
+        return true;
+    }
+}
+
+public class PalindromicNumbers {
+    public static void main(String[] args) throws Exception{
+        System.setIn(new FileInputStream("src/BKJ_1259/input.txt"));
+        Main.main(args);
+    }
+}
