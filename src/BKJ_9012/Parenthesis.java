@@ -28,7 +28,7 @@ class Main {
 
         for (int i = 0; i < inputString.length(); i++){
             if (inputString.charAt(i) == '(') {
-                stack.push(1);
+                stack.push(Integer.valueOf(1));
             } else {
                 try {
                     stack.pop();

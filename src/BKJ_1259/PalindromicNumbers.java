@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Objects;
+import java.util.Optional;
 
 class Main {
     static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -30,7 +31,7 @@ class Main {
         pointer = 0;
 
         while (pointer <= (numberLength) / 2) {
-            if (! Objects.equals(number.charAt(pointer), number.charAt(numberLength - pointer))) {
+            if (! Objects.equals(Optional.of(number.charAt(pointer)), Optional.of(number.charAt(numberLength - pointer)))) {
                 return false;
             }
             pointer++;

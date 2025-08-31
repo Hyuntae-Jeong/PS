@@ -31,7 +31,7 @@ class Main {
             command = token.nextToken();
             switch (command) {
                 case "push":
-                    value = Integer.parseInt(token.nextToken());
+                    value = (Integer) Integer.parseInt(token.nextToken());
                     queue.offer(value);
                     break;
                 case "pop":

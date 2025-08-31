@@ -24,7 +24,7 @@ class Main {
         for (int i = 0; i < N; i++) {
             token = new StringTokenizer(br.readLine());
             
-            age = Integer.parseInt(token.nextToken());
+            age = (Integer) Integer.parseInt(token.nextToken());
             name = token.nextToken();
             
             map.putIfAbsent(age, new ArrayList<>());

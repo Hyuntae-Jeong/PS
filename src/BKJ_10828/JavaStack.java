@@ -28,7 +28,7 @@ class Main {
 
             switch (command) {
                 case "push":
-                    stack.push(Integer.parseInt(token.nextToken()));
+                    stack.push(Integer.valueOf(Integer.parseInt(token.nextToken())));
                     break;
                 case "pop":
                     sb.append(stack.empty() ? -1 : stack.pop()).append("\n");
