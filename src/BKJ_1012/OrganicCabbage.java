@@ -54,7 +54,7 @@ class Main {
     static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     static int CASE, N, M, K;
     static HashSet<Point> cabbages;
-    static int[][] field;
+    //    static int[][] field;
     static StringBuilder sb = new StringBuilder();
 
     public static void main(String[] args) throws IOException {
@@ -73,24 +73,23 @@ class Main {
         K = Integer.parseInt(token.nextToken());
 
         cabbages = new HashSet<>();     // 아직 확인 안 한 양배추 목록 (다음 구간으로 O(1)만에 넘어가기 위해 HashSet 자료구조 사용)
-        field = new int[N][M];          // 근처 배추 있는지 확인용
+//        field = new int[N][M];          // 근처 배추 있는지 확인용
 
-        int x, y;
+//        int x, y;
         for (int i = 0; i < K; i++) {
             token = new StringTokenizer(br.readLine());
-
-            x = Integer.parseInt(token.nextToken());
-            y = Integer.parseInt(token.nextToken());
-
-            cabbages.add(new Point(x, y));
-            field[x][y] = 1;
+            cabbages.add(new Point(Integer.parseInt(token.nextToken()), Integer.parseInt(token.nextToken())));
+//            field[x][y] = 1;
         }
 
         Iterator<Point> it = cabbages.iterator();
         int count = 0;
         while (it.hasNext()){
             count++;
-            countWorms(it.next());
+
+            Point point = it.next();
+            countWorms(point.x, point.y);
+
             it = cabbages.iterator();
         }
         sb.append(count).append("\n");
@@ -101,8 +100,7 @@ class Main {
      * BFS 방식으로 주변 영역 탐색
      * @param point
      */
-    private static void countWorms(Point point) {
-
+    /*private static void countWormsWithArray(Point point) {
 //        printCabbages("Removing (" + point.x + ", " + point.y + ")", cabbages);
         int x = point.x;
         int y = point.y;
@@ -110,11 +108,27 @@ class Main {
         field[x][y] = 0;
         cabbages.remove(point);
 
-        if (x - 1 >= 0 && field[x - 1][y] == 1) countWorms(new Point(x - 1, y));
-        if (x + 1 < N && field[x + 1][y] == 1) countWorms(new Point(x + 1, y));
-        if (y - 1 >= 0 && field[x][y - 1] == 1) countWorms(new Point(x, y - 1));
-        if (y + 1 < M && field[x][y + 1] == 1) countWorms(new Point(x, y + 1));
+        if (x - 1 >= 0 && field[x - 1][y] == 1) countWormsWithArray(new Point(x - 1, y));
+        if (x + 1 < N && field[x + 1][y] == 1) countWormsWithArray(new Point(x + 1, y));
+        if (y - 1 >= 0 && field[x][y - 1] == 1) countWormsWithArray(new Point(x, y - 1));
+        if (y + 1 < M && field[x][y + 1] == 1) countWormsWithArray(new Point(x, y + 1));
 
+    }*/
+
+    /**
+     * field 배열 사용 안하는 방식으로 변경
+     * 왜냐하면 hashCode()와 equals()를 override하여 HashSet에서 좌표 객체를 찾을 수 있기 때문
+     * @param x
+     */
+    private static void countWorms(int x, int y) {
+
+        if (x < 0 || x >= N || y < 0 || y >= M) return;     // range check
+        if (!cabbages.remove(new Point(x, y))) return;      // aliveness checks
+
+        countWorms(x - 1, y);
+        countWorms(x + 1, y);
+        countWorms(x, y - 1);
+        countWorms(x, y + 1);
     }
 
     private static void printCabbages(String x, HashSet<Point> cabbages) {
