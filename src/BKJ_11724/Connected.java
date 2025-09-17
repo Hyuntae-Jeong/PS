@@ -42,7 +42,12 @@ class Main {
                 // a != b && a != 0 && b != 0
                 // compare leader & connect
                 if (leaderNode[node[a]] != leaderNode[node[b]]) {
-                    leaderNode[node[b]] = leaderNode[node[a]];
+                    int target = leaderNode[node[b]];
+                    int newLeader = leaderNode[node[a]];
+
+                    for (int j = 1; j <= leaderCount; j++) {
+                        if (leaderNode[j] == target) leaderNode[j] = newLeader;
+                    }
                 }
             }
         }
