@@ -1,0 +1,23 @@
+풀이..
+
+자료구조
+doubleQueue: 2배(순간이동)할 위치 큐
+stepQueue: -1/+1 이동할 위치 큐
+
+initial state
+수빈 위치에서부터 시작한다
+수빈 위치를 doubleQueue와 walkQueue에 모두 넣는다
+첫 step을 1부터 시작한다 (steps 배열에 0은 미방문으로 인식하기 위해)
+
+start
+1) 먼저 doubleQueue에서 위치들 꺼내와서 순간이동 시키고 step 기록 & walkQueue에 add
+target 보다 커지면 바로 stop
+2) 순간이동 작업 끝났으면 걷기 작업 시작
+1번과 2번 둘다 steps가 0일때만 queue에 삽입 (첫방문 = 최소 시간)
+3) 걷기 작업에서 이동한 위치는 doubleQueue와 stepQueue에 모두 삽입
+4) target 찾을때까지 1,2,3 반복
+
+BFS 적으로 문제를 풀었다고 볼 수 있음
+
+문제 풀이 핵심: 2배씩 이동할때 target 지나면 즉시 멈춘다. 왜냐하면 뒤로가는건 -1 밖에 안되니까
+
