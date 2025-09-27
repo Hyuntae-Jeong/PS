@@ -24,7 +24,7 @@ class Main {
         for (int i = 1; i <= N; i++) {
             StringTokenizer token = new StringTokenizer(br.readLine());
             for (int j = 1; j <= N; j++) {
-                chart[i][j] = chart[i][j - 1] + Integer.parseInt(token.nextToken());
+                chart[i][j] = chart[i - 1][j] + chart[i][j - 1] - chart[i - 1][j - 1] + Integer.parseInt(token.nextToken());
             }
         }
     }
@@ -40,10 +40,7 @@ class Main {
             x2 = Integer.parseInt(token.nextToken());
             y2 = Integer.parseInt(token.nextToken());
 
-            int sum = 0;
-            for (int j = x1; j <= x2; j++) {
-                sum += chart[j][y2] - chart[j][y1 - 1];
-            }
+            int sum = chart[x2][y2] - chart[x1 - 1][y2] - chart[x2][y1 - 1] + chart[x1 - 1][y1 - 1];
 
             sb.append(sum).append("\n");
         }
