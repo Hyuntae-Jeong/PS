@@ -1,0 +1,9 @@
+ABB
+BB
+
+
+VLSKD
+VREGDFELK
+(반례)
+출력: 2 VD
+정답: 3 VLK
