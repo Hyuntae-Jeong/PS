@@ -1,23 +1,22 @@
-package BKJ_9663;
+    package BKJ_9663;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
 
 class Main {
     static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     static int N;
-    static HashMap<Integer, Boolean> occupiedSum, occupiedSub, occupiedY;
+    static boolean[] occupiedSum, occupiedSub, occupiedY;
     static int count = 0;
     static boolean debug = false;
 
     public static void main(String[] args) throws IOException {
         N = Integer.parseInt(br.readLine());
-        occupiedSum = new HashMap<>();
-        occupiedSub = new HashMap<>();
-        occupiedY = new HashMap<>();
+        occupiedSum = new boolean[N * 4 + 1];
+        occupiedSub = new boolean[N * 4 + 1];
+        occupiedY = new boolean[N + 1];
         check(0);
         System.out.print(count);
     }
@@ -31,14 +30,15 @@ class Main {
         }
 
         for (int y = 0; y < N; y++) {
-            if (occupiedSub.getOrDefault(y - x, false) || occupiedSum.getOrDefault(x + y, false) || occupiedY.getOrDefault(y, false)) continue;
+            int sub = (y - x) + N, sum = (x + y) + N;
+            if (occupiedSub[sub] || occupiedSum[sum] || occupiedY[y]) continue;
 
             if (debug) System.out.printf("Checking... (%d , %d)\n", x, y);
 
             // occupy current queen's boundaries
-            { occupiedSum.put(x + y, true); occupiedSub.put(y - x, true); occupiedY.put(y, true); }
+            { occupiedSum[sum] = true; occupiedSub[sub] = true; occupiedY[y] = true; }
             check(x + 1);
-            { occupiedSum.put(x + y, false); occupiedSub.put(y - x, false); occupiedY.put(y, false); }
+            { occupiedSum[sum] = false; occupiedSub[sub] = false; occupiedY[y] = false; }
         }
     }
 }
