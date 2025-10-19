@@ -1,14 +1,13 @@
 package BKJ_2206;
 
-
 import java.io.*;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.StringTokenizer;
 
-
 class Point {
-    int x, y, step;
+    int x, y, step, minPrevStep;
+
     Point (int x, int y, int step) {
         this.x = x;
         this.y = y;
@@ -19,13 +18,11 @@ class Point {
 class Main {
     static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     static int N, M;
-    static int[][] arr;
-    static Deque<Point> queue;
-    static Deque<Point> wallQueue;
+    static int[][] arr, revArr;
+    static Deque<Point> queue, wallQueue, breakableWallQueue;
     static boolean debug = true;
     static int[] dx = {0, -1, 0, 1};
     static int[] dy = {-1, 0, 1, 0};
-
 
     public static void main(String[] args) throws IOException {
         StringTokenizer token = new StringTokenizer(br.readLine());
@@ -36,20 +33,74 @@ class Main {
         getInput();
         boolean withoutBreaking = findPathWithoutBreaking();
 
-        if(debug) printThings();
+        if(debug) printThings(arr);
+
         if (withoutBreaking) {
-            // 벽 하나씩 뿌셔보기
-//            breakWallsOneByOne();
+            /**
+             * @case: 벽 부수기 없이 최단거리 찾은 경우
+             * @target: 최단거리 더 짧아지는 경우 (벽 1개만 부수기)
+             */
+            breakWallsOneByOne();
         } else {
-            // 막힌 지점에서 벽 뚫기 시도하기
-                // 일단 해당 지점에서 빠져나갈 구멍이 있는지 검사하기
-                    // 빠져나갈 구멍 없으면 -1 리턴
-                    // 빠져나갈 구멍 있으면 도착지점에서부터 역으로 최단거리 구해서 올라오고, 벽 뚫으면 그 값들과 만나는지 확인하기
+            /**
+             * @case: 벽에 막혀서 도착지점 도달하지 못한 경우
+             * @target: 도착지점에 최단거리로 도착할 수 있는 벽 찾기
+             * @condition: 뚫리는 벽의 조건은 4면 중 arr배열 양수인 값 1개 이상과 0인 값 1개 이상 모두 존재
+             * @step
+             * 1. 뚫을 수 있는 벽 필터링 하기
+             * 2. 뚫을 수 있는 벽 없으면 -1 리턴하고, 있으면 breakableWallQueue에 저장
+             * 3. 도착 지점에서 역으로 step 구하고 revArr 배열에 저장하기
+             * 4. breakableWallQueue와 revArr를 활용해서 최단거리 되는 벽 찾기
+             */
+
+            breakableWallQueue  = filterBreakableWalls();               // step 1
+            if (breakableWallQueue.isEmpty()) System.out.print("-1");   // step 2
+            else {
+                 findReversePath();
+                 if (debug) printThings(revArr);
+            }
+
+            if (debug) {
+                while (!breakableWallQueue.isEmpty()) {
+                    Point p = breakableWallQueue.poll();
+                    System.out.printf("breakable Wall: (%d, %d), minPrevStep: %d\n", p.x, p.y, p.minPrevStep);
+                }
+
+            }
         }
         
     }
 
+    private static Deque<Point> filterBreakableWalls() {
+        breakableWallQueue = new ArrayDeque<>();
+
+        while (!wallQueue.isEmpty()) {
+            Point p = wallQueue.poll();
+            boolean isPositive = false, isZero = false;
+            int step, minPrevStep = N * M;
+
+            for (int i = 0; i < 4; i++) {
+                step = getStep(p.x + dx[i], p.y + dy[i]);
+                if (step == -1) continue;
+                else if (step == 0) isZero = true;
+                else if (step > 0) {
+                    isPositive = true;
+                    minPrevStep = Math.min(minPrevStep, step);      // 최소 거리에서 벽을 뚫어야 최종적으로 최단거리가 된다
+                }
+            }
+
+            if (isZero && isPositive) {
+                p.minPrevStep = minPrevStep;
+                breakableWallQueue.push(p);
+            }
+        }
+
+        return breakableWallQueue;
+    }
+
     static void breakWallsOneByOne() {
+        int maxDiff = 0;
+
         while (!wallQueue.isEmpty()) {
             Point p = wallQueue.poll();
 
@@ -59,12 +110,14 @@ class Main {
                 if (step == -1) continue;
 
                 minStep = Math.min(minStep, step);
-                maxStep = Math.min(maxStep, step);
+                maxStep = Math.max(maxStep, step);
+                maxDiff = Math.max(maxDiff, maxStep - minStep);
             }
 
-            // min
+            System.out.printf("wall (%d, %d) = min: %d, max: %d\n", p.x, p.y, minStep, maxStep);
         }
 
+        if (maxDiff - 2 > 0) arr[N][M] -= (maxDiff - 2);
     }
 
     static int getStep(int x, int y) {
@@ -75,14 +128,14 @@ class Main {
     }
 
 
-    static void printThings() {
+    static void printThings(int[][] targetArr) {
         for (int i = 1; i <= N; i++) {
             for (int j = 1; j <= M; j++) {
-                System.out.printf("%d\t", arr[i][j]);
+                System.out.printf("%d\t", targetArr[i][j]);
             }
             System.out.println();
-       }
-
+        }
+        System.out.println();
     }
 
     static void getInput() throws IOException {
@@ -106,26 +159,40 @@ class Main {
 
         while (!queue.isEmpty()) {
             Point p = queue.poll();
-            nextStep(p);
+            nextStep(p, arr);
         }
         
         // 마지막 위치가 (N, M)이 아니면 벽에 막힌 것
         return arr[N][M] != 0;
     }
 
-    static void nextStep (Point p) {
+    static void findReversePath() {
+        revArr = new int[N + 1][M + 1];
+        queue = new ArrayDeque<>();
+
+        queue.add(new Point(N, M, 1));
+        revArr[N][M] = 1;
+
+        while (!queue.isEmpty()) {
+            Point p = queue.poll();
+            nextStep(p, revArr);
+        }
+    }
+
+    static void nextStep (Point p, int[][] targetArr) {
         for (int i = 0; i < 4; i++) {
-            if (inRangeAndCanGo(p.x + dx[i], p.y + dy[i])) {
+            if (inRangeAndCanGo(p.x + dx[i], p.y + dy[i], targetArr)) {
                 queue.add(new Point(p.x + dx[i], p.y + dy[i], p.step + 1));
-                arr[p.x + dx[i]][p.y + dy[i]] = p.step + 1;
+                targetArr[p.x + dx[i]][p.y + dy[i]] = p.step + 1;
             }
         }
     }
 
-    static boolean inRangeAndCanGo(int x, int y) {
+    static boolean inRangeAndCanGo(int x, int y, int[][] targetArr) {
         if (x <= 0 || x > N) return false;
         if (y <= 0 || y > M) return false;
-        if (arr[x][y] != 0) return false;
+        if (arr[x][y] == -1) return false;
+        if (targetArr[x][y] > 0) return false;
 
         return true;
     }
