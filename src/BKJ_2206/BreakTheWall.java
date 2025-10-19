@@ -58,6 +58,8 @@ class Main {
             else {
                  findReversePath();
                  if (debug) printThings(revArr);
+
+                 // todo: breakableWall 중에서 최단거리로 목표지점에 도달할 수 있는 벽 구하기
             }
 
             if (debug) {
@@ -114,7 +116,7 @@ class Main {
                 maxDiff = Math.max(maxDiff, maxStep - minStep);
             }
 
-            System.out.printf("wall (%d, %d) = min: %d, max: %d\n", p.x, p.y, minStep, maxStep);
+            if(debug) System.out.printf("wall (%d, %d) = min: %d, max: %d\n", p.x, p.y, minStep, maxStep);
         }
 
         if (maxDiff - 2 > 0) arr[N][M] -= (maxDiff - 2);
@@ -126,7 +128,6 @@ class Main {
 
         return arr[x][y];
     }
-
 
     static void printThings(int[][] targetArr) {
         for (int i = 1; i <= N; i++) {
