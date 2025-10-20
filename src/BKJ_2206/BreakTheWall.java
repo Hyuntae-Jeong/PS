@@ -29,19 +29,23 @@ class Main {
         N = Integer.parseInt(token.nextToken());
         M = Integer.parseInt(token.nextToken());
         arr = new int[N + 1][M + 1];
+        revArr = new int[N + 1][M + 1];
 
         getInput();
-        boolean withoutBreaking = findPathWithoutBreaking();
 
-        if(debug) printThings(arr);
-
-        if (withoutBreaking) {
+        if (findPathWithoutBreaking()) {
             /**
              * @case: 벽 부수기 없이 최단거리 찾은 경우
              * @target: 최단거리 더 짧아지는 경우 (벽 1개만 부수기)
              */
-            breakWallsOneByOne();
-            System.out.print(arr[N][M]);
+            findReversePath();
+
+            if(debug) {
+                printThings(arr);
+                printThings(revArr);
+            }
+
+            System.out.print(breakWallsOneByOne());
         } else {
             /**
              * @case: 벽에 막혀서 도착지점 도달하지 못한 경우
@@ -72,7 +76,7 @@ class Main {
 
             int minStepAfterWall = N * M;
             for (int i = 0; i < 4; i++) {
-                int stepAfterWall = getRevStep(p.x + dx[i], p.y + dy[i]);
+                int stepAfterWall = getStep(p.x + dx[i], p.y + dy[i], revArr);
                 if (stepAfterWall > 0) {
                     minStepAfterWall = Math.min(minStepAfterWall, stepAfterWall);
                 }
@@ -94,7 +98,7 @@ class Main {
             int step, minPrevStep = N * M;
 
             for (int i = 0; i < 4; i++) {
-                step = getStep(p.x + dx[i], p.y + dy[i]);
+                step = getStep(p.x + dx[i], p.y + dy[i], arr);
                 if (step == -1) continue;
                 else if (step == 0) isZero = true;
                 else if (step > 0) {
@@ -112,40 +116,33 @@ class Main {
         return breakableWallQueue;
     }
 
-    static void breakWallsOneByOne() {
-        int maxDiff = 0;
+    static int breakWallsOneByOne() {
+        int shortestPath = arr[N][M];
 
         while (!wallQueue.isEmpty()) {
             Point p = wallQueue.poll();
+            int minStep = N * M, minRevStep = N * M, step, revStep;
 
-            int minStep = N * M, maxStep = 0, step;
             for (int i = 0; i < 4; i++) {
-                step = getStep(p.x + dx[i], p.y + dy[i]);
-                if (step == -1) continue;
+                step = getStep(p.x + dx[i], p.y + dy[i], arr);
+                revStep = getStep(p.x + dx[i], p.y + dy[i], revArr);
 
-                minStep = Math.min(minStep, step);
-                maxStep = Math.max(maxStep, step);
-                maxDiff = Math.max(maxDiff, maxStep - minStep);
+                if (step != -1) minStep = Math.min(minStep, step);
+                if (revStep != -1) minRevStep = Math.min(minRevStep, revStep);
             }
 
-            if(debug) System.out.printf("wall (%d, %d) = min: %d, max: %d, diff: %d\n", p.x, p.y, minStep, maxStep, maxStep - minStep);
+            if(debug) System.out.printf("wall (%d, %d) = min: %d, minRev: %d, step through wall: %d\n", p.x, p.y, minStep, minRevStep, minStep + 1 + minRevStep);
+            shortestPath = Math.min(shortestPath, minStep + 1 + minRevStep);
         }
 
-        if (maxDiff - 2 > 0) arr[N][M] -= (maxDiff - 2);
+        return shortestPath;
     }
 
-    static int getStep(int x, int y) {
+    static int getStep(int x, int y, int[][] targetArr) {
         if (x <= 0 || x > N) return -1;
         if (y <= 0 || y > M) return -1;
 
-        return arr[x][y];
-    }
-
-    static int getRevStep(int x, int y) {
-        if (x <= 0 || x > N) return -1;
-        if (y <= 0 || y > M) return -1;
-
-        return revArr[x][y];
+        return targetArr[x][y];
     }
 
     static void printThings(int[][] targetArr) {
@@ -165,6 +162,7 @@ class Main {
             for (int j = 1; j <= M; j++) {
                 if (inputLine.charAt(j - 1) == '1') {
                     arr[i][j] = -1;
+                    revArr[i][j] = -1;
                     wallQueue.add(new Point(i, j, 0));
                 }
             }
@@ -186,9 +184,7 @@ class Main {
     }
 
     static void findReversePath() {
-        revArr = new int[N + 1][M + 1];
         queue = new ArrayDeque<>();
-
         queue.add(new Point(N, M, 1));
         revArr[N][M] = 1;
 
@@ -210,8 +206,7 @@ class Main {
     static boolean inRangeAndCanGo(int x, int y, int[][] targetArr) {
         if (x <= 0 || x > N) return false;
         if (y <= 0 || y > M) return false;
-        if (arr[x][y] == -1) return false;
-        if (targetArr[x][y] > 0) return false;
+        if (targetArr[x][y] != 0) return false;
 
         return true;
     }
