@@ -41,6 +41,7 @@ class Main {
              * @target: 최단거리 더 짧아지는 경우 (벽 1개만 부수기)
              */
             breakWallsOneByOne();
+            System.out.print(arr[N][M]);
         } else {
             /**
              * @case: 벽에 막혀서 도착지점 도달하지 못한 경우
@@ -56,21 +57,32 @@ class Main {
             breakableWallQueue  = filterBreakableWalls();               // step 1
             if (breakableWallQueue.isEmpty()) System.out.print("-1");   // step 2
             else {
-                 findReversePath();
+                 findReversePath();                                     // step 3
                  if (debug) printThings(revArr);
-
-                 // todo: breakableWall 중에서 최단거리로 목표지점에 도달할 수 있는 벽 구하기
-            }
-
-            if (debug) {
-                while (!breakableWallQueue.isEmpty()) {
-                    Point p = breakableWallQueue.poll();
-                    System.out.printf("breakable Wall: (%d, %d), minPrevStep: %d\n", p.x, p.y, p.minPrevStep);
-                }
-
+                 breakTheWall();
             }
         }
         
+    }
+
+    private static void breakTheWall() {
+        int finalMinStep = N * M;
+        while (!breakableWallQueue.isEmpty()) {
+            Point p = breakableWallQueue.poll();
+
+            int minStepAfterWall = N * M;
+            for (int i = 0; i < 4; i++) {
+                int stepAfterWall = getRevStep(p.x + dx[i], p.y + dy[i]);
+                if (stepAfterWall > 0) {
+                    minStepAfterWall = Math.min(minStepAfterWall, stepAfterWall);
+                }
+            }
+            finalMinStep = Math.min(finalMinStep, p.minPrevStep + 1 + minStepAfterWall);
+
+            if (debug) System.out.printf("breakable Wall: (%d, %d), minPrevStep: %d, minStepAfterWall: %d\n", p.x, p.y, p.minPrevStep, minStepAfterWall);
+        }
+
+        System.out.print(finalMinStep);
     }
 
     private static Deque<Point> filterBreakableWalls() {
@@ -116,7 +128,7 @@ class Main {
                 maxDiff = Math.max(maxDiff, maxStep - minStep);
             }
 
-            if(debug) System.out.printf("wall (%d, %d) = min: %d, max: %d\n", p.x, p.y, minStep, maxStep);
+            if(debug) System.out.printf("wall (%d, %d) = min: %d, max: %d, diff: %d\n", p.x, p.y, minStep, maxStep, maxStep - minStep);
         }
 
         if (maxDiff - 2 > 0) arr[N][M] -= (maxDiff - 2);
@@ -127,6 +139,13 @@ class Main {
         if (y <= 0 || y > M) return -1;
 
         return arr[x][y];
+    }
+
+    static int getRevStep(int x, int y) {
+        if (x <= 0 || x > N) return -1;
+        if (y <= 0 || y > M) return -1;
+
+        return revArr[x][y];
     }
 
     static void printThings(int[][] targetArr) {
@@ -140,12 +159,11 @@ class Main {
     }
 
     static void getInput() throws IOException {
-        StringTokenizer token;
         wallQueue = new ArrayDeque<>();
         for (int i = 1; i <= N; i++) {
-            token = new StringTokenizer(br.readLine());
+            String inputLine = br.readLine();
             for (int j = 1; j <= M; j++) {
-                if (Integer.parseInt(token.nextToken()) == 1) {
+                if (inputLine.charAt(j - 1) == '1') {
                     arr[i][j] = -1;
                     wallQueue.add(new Point(i, j, 0));
                 }
