@@ -20,7 +20,6 @@ class Main {
     static int nodes, roads, wormholes;
     static ArrayList<Path> paths;
     static int[] dist;
-    static boolean debug = false;
 
     public static void main(String[] args) throws IOException {
         StringBuilder sb = new StringBuilder();
@@ -33,9 +32,19 @@ class Main {
             wormholes = Integer.parseInt(token.nextToken());
 
             paths = new ArrayList<>();
+            
+            /**
+             * dist를 0으로 초기화하는 이유
+             * 슈퍼 소스를 시작점으로 두면 첫번째 벨만포드 탐색 시 모든 정점의 dist가 0이 되기 때문
+             *
+             * 슈퍼 소스란?
+             * 모든 정점에 거리 0으로 연결된 새로운 정점
+             *
+             * 슈퍼 소스를 사용하는 이유?
+             * 클러스터가 분리된 경우에도 음의 사이클 탐지를 위해
+             */
             dist = new int[nodes + 1];
             getInput();
-            if (debug) printInput();
 
             if(bellmanFord()) {
                 sb.append("YES\n");
@@ -70,30 +79,26 @@ class Main {
         }
     }
 
-    static void printInput() {
-        for (Path path : paths) {
-            System.out.printf("S:%d E:%d T:%d\n", path.s, path.e, path.t);
-        }
-    }
-
-    static boolean bellmanFord() {
-        for (int step = 0; step <= nodes; step++) {
-            if (debug) System.out.printf("step : %d\n", step);
-            for (Path path : paths) {
-                if (debug) System.out.printf("%d --(%d)--> %d : %d vs %d\n", path.s, path.t, path.e, dist[path.e], dist[path.s] + path.t);
-                if (dist[path.e] > dist[path.s] + path.t) {
-                    if (debug) System.out.printf("step: %d | dist[%d] %d -> ", step, path.e, dist[path.e]);
-                    dist[path.e] = dist[path.s] + path.t;
-                    if (debug) System.out.printf("%d\n", dist[path.e]);
-                }
-            }
-        }
+    static boolean checkDist(boolean flag) {
         for (Path path : paths) {
             if (dist[path.e] > dist[path.s] + path.t) {
-                return true;
+                if (flag) return true;
+                dist[path.e] = dist[path.s] + path.t;
             }
         }
         return false;
+    }
+
+    static boolean bellmanFord() {
+        /**
+         * step을 nodes가 아닌 nodes - 1 까지 반복하는 이유?
+         * 슈퍼 소스가 추가된 경우 첫번째 반복에서는 dist가 모두 0으로 바뀜
+         * 이 과정을 dist배열을 0으로 초기화 하는것으로 대체함
+         */
+        for (int step = 0; step < nodes; step++) {
+            checkDist(false);
+        }
+        return checkDist(true);
     }
 }
 
