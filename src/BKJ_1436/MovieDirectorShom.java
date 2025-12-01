@@ -11,25 +11,18 @@ class Main{
     public static void main(String[] args) throws IOException {
         N = Integer.parseInt(br.readLine());
 
-        long i = 0, x = 0;
-        int count = 0, sixCount;
+        long i = 665, x;
+        int count = 0;
 
         while (count < N) {
             x = ++i;
-            sixCount = 0;
-
             while (x > 0) {
-                if (x % 10 == 6) sixCount++;
-                else sixCount = 0;
-
-                x /= 10;
-
-                if (sixCount == 3) {
+                if (x % 1000 == 666) {
                     count++;
                     break;
                 }
+                x /= 10;
             }
-
         }
 
         System.out.print(i);
