@@ -6,10 +6,20 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.StringTokenizer;
 
+class Answer {
+    long absValue;
+    long liquid1, liquid2;
+
+    Answer () {
+        this.absValue = Long.MAX_VALUE;
+    }
+}
+
 class Main {
     static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
     static int N;
     static StringTokenizer token;
+    static Answer answer = new Answer();
 
     public static void main(String[] args) throws Exception {
         N = Integer.parseInt(br.readLine());
@@ -49,10 +59,8 @@ class Main {
         }
     }
 
-    static long binaryMin = Long.MAX_VALUE;
-
     static class SearchData {
-        long negMin, posMin, positive;
+        long negMin, posMin, positive, negMinValue, posMinValue;
         boolean foundZero;
 
         SearchData (long positive) {
@@ -72,10 +80,27 @@ class Main {
                 posMin = mixture;
                 posMinValue = minus[idx];
                 return 1;
-            } else {
+            } else if (mixture == 0) {
                 foundZero = true;
                 return 0;
+            } else {
+                // L와 R가 만난 지점
+                return 999;
             }
+        }
+
+        void compareWithGlobal() {
+            // 전체 Binary Min과 비교해서 절대값 더 작으면 덮어씌우기
+            if (Math.abs(negMin) < Math.abs(posMin) && Math.abs(negMin) < answer.absValue) {
+                answer.absValue = Math.abs(negMin);
+                answer.liquid1 = negMinValue;
+                answer.liquid2 = positive;
+            } else if (Math.abs(negMin) >= Math.abs(posMin) && Math.abs(posMin) < answer.absValue) {
+                answer.absValue = Math.abs(posMin);
+                answer.liquid1 = posMinValue;
+                answer.liquid2 = positive;
+            }
+            System.out.println("[answer] absValue = " + answer.absValue + " , liquid1 = " + answer.liquid1 + " , liquid2 = " + answer.liquid2);
         }
 
         void printVariables() {
@@ -88,15 +113,9 @@ class Main {
         SearchData searchData = new SearchData(positive);
         int left = 0, right = endIndexOfMinus, mid;
 
-        searchData.eval(left);
-        searchData.printVariables();
-
-        searchData.eval(right);
-        searchData.printVariables();
-
+        searchLoop:
         while (left < right) {
             mid = (left + right) / 2;
-            if (mid == left) break;
 
             switch (searchData.eval(mid)) {
                 case -1:
@@ -107,11 +126,13 @@ class Main {
                     break;
                 case 0:
                     return true;
+                case 999:
+                    break searchLoop;
             }
-            searchData.printVariables();
         }
 
         // negMin과 rightMin 비교
+        searchData.compareWithGlobal();
 
         return false;
     }
