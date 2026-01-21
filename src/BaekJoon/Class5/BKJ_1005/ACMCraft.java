@@ -1,4 +1,5 @@
 package BaekJoon.Class5.BKJ_1005;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -10,13 +11,13 @@ class Building {
     long cost;
     long requireCost;
     int requireCount;
-    ArrayList<Integer> buildAfter;
+    Set<Integer> buildAfter;
 
     Building (long cost) {
         this.cost = cost;
-        this.requireCost = 0;
+        this.requireCost = -1;
         this.requireCount = 0;
-        this.buildAfter = new ArrayList<>();
+        this.buildAfter = new HashSet<>();
     }
 }
 
@@ -32,7 +33,7 @@ class Main {
             sb.append(goACMCraft()).append("\n");
         }
 
-        System.out.println(sb);
+        System.out.print(sb);
     }
 
     static long goACMCraft() throws IOException {
@@ -45,7 +46,8 @@ class Main {
 
         int target = Integer.parseInt(br.readLine());
         for (int i = 1; i <= N; i++) {
-            if (buildings[i].requireCount == 0) {
+            if (buildings[i].requireCount == 0 && buildings[i].requireCost < 0) {
+                buildings[i].requireCost = 0;
                 long result = getBuildingConstructionTimeBFS(i, target, buildings);
                 if (result != -1) {
                     return result;
@@ -69,8 +71,11 @@ class Main {
             token = new StringTokenizer(br.readLine());
             int a = Integer.parseInt(token.nextToken());
             int b = Integer.parseInt(token.nextToken());
-            buildings[a].buildAfter.add(b);
-            buildings[b].requireCount++;
+
+            if (!buildings[a].buildAfter.contains(b)) {
+                buildings[a].buildAfter.add(b);
+                buildings[b].requireCount++;
+            }
         }
     }
 
@@ -79,7 +84,8 @@ class Main {
         queue.add(startBuilding);
 
         while (!queue.isEmpty()) {
-            Integer parent = queue.poll();
+            int parent = (int) queue.poll();
+            
             if (parent == targetBuilding) {
                 return buildings[targetBuilding].cost + buildings[targetBuilding].requireCost;
             }
