@@ -4,18 +4,19 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.StringTokenizer;
+import java.util.*;
 
 class Building {
-    int cost;
-    long buildTime;
-    ArrayList<Integer> requires;
+    long cost;
+    long requireCost;
+    int requireCount;
+    ArrayList<Integer> buildAfter;
 
-    Building (int cost, int size) {
+    Building (long cost) {
         this.cost = cost;
-        this.buildTime = 0;
-        this.requires = new ArrayList<>(size);
+        this.requireCost = 0;
+        this.requireCount = 0;
+        this.buildAfter = new ArrayList<>();
     }
 }
 
@@ -43,8 +44,16 @@ class Main {
         getTasksAndConnections(N, K, buildings);
 
         int target = Integer.parseInt(br.readLine());
+        for (int i = 1; i <= N; i++) {
+            if (buildings[i].requireCount == 0) {
+                long result = getBuildingConstructionTimeBFS(i, target, buildings);
+                if (result != -1) {
+                    return result;
+                }
+            }
+        }
 
-        return getBuildingConstructionTime(target, buildings);
+        return -1;
     }
 
     static void getTasksAndConnections(int N, int K, Building[] buildings) throws IOException {
@@ -52,7 +61,7 @@ class Main {
 
         // getTasks
         for (int i = 1; i <= N; i++) {
-            buildings[i] = new Building(Integer.parseInt(token.nextToken()), N);
+            buildings[i] = new Building(Long.parseLong(token.nextToken()));
         }
 
         // getConnections
@@ -60,21 +69,33 @@ class Main {
             token = new StringTokenizer(br.readLine());
             int a = Integer.parseInt(token.nextToken());
             int b = Integer.parseInt(token.nextToken());
-            buildings[b].requires.add(a);
+            buildings[a].buildAfter.add(b);
+            buildings[b].requireCount++;
         }
     }
 
-    static long getBuildingConstructionTime(int buildingNum, Building[] buildings) {
-        if (buildings[buildingNum].buildTime > 0) return buildings[buildingNum].buildTime;
+    static long getBuildingConstructionTimeBFS(int startBuilding, int targetBuilding, Building[] buildings) {
+        Queue<Integer> queue = new ArrayDeque<>();
+        queue.add(startBuilding);
 
-        long maxCost = 0;
+        while (!queue.isEmpty()) {
+            Integer parent = queue.poll();
+            if (parent == targetBuilding) {
+                return buildings[targetBuilding].cost + buildings[targetBuilding].requireCost;
+            }
 
-        for (int require : buildings[buildingNum].requires) {
-            maxCost = Math.max(maxCost, getBuildingConstructionTime(require, buildings));
+            for (Integer child : buildings[parent].buildAfter) {
+                buildings[child].requireCost = Math.max(buildings[child].requireCost, buildings[parent].cost + buildings[parent].requireCost);
+
+                // 필요한 건물들을 모두 탐색한 경우에만 다음으로 빌딩 탐색을 시작한다
+                if (--buildings[child].requireCount == 0) {
+                    queue.add(child);
+                }
+            }
         }
 
-        buildings[buildingNum].buildTime = maxCost + buildings[buildingNum].cost;
-        return buildings[buildingNum].buildTime;
+        // 타겟 빌딩이 속한 클러스터가 아닌 경우
+        return -1;
     }
 }
 
