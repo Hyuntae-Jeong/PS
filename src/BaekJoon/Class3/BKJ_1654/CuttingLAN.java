@@ -16,47 +16,44 @@ class Main {
         K = Integer.parseInt(token.nextToken());
         N = Integer.parseInt(token.nextToken());
 
-        long sum = getInputAndSum();
-//        System.out.println("sum = " + sum);
-
-        int startLength = findStartPoint(sum);
-//        System.out.println("startLength = " + startLength);
-
-        int answer = findMaxLAN(startLength);
-
-        System.out.print(answer);
+        System.out.print(findMaxLAN(getInputAndMax()));
     }
 
-    static int[] lanCables;
-    static long getInputAndSum() throws IOException {
-        lanCables = new int[K];
-        long sum = 0;
+    static long[] lanCables;
+    static long getInputAndMax() throws IOException {
+        lanCables = new long[K];
+        long max = 0;
 
         for (int i = 0; i < K; i++) {
-            lanCables[i] = Integer.parseInt(br.readLine());
-            sum += lanCables[i];
+            lanCables[i] = Long.parseLong(br.readLine());
+            max = Math.max(max, lanCables[i]);
         }
 
-        return sum;
+        return max;
     }
 
-    static int findStartPoint(long sum) {
-        return (int) (sum / N);
-    }
+    static long findMaxLAN(long startMaxLength) {
+        long L = 1, R = startMaxLength;
 
-    static int findMaxLAN(int length) {
-        while (length > 0) {
-            if (getAvailableLANcount(length) >= N) {
-                return length;
+        while (L < R) {
+            // 주의: R이 2^31 -1 이라면, L + R은 int 범위를 넘어가게 된다..
+            long lanCount = getAvailableLANcount((L + R) / 2);
+            if (lanCount < N) {
+                R = (L + R) / 2 - 1;
+            } else {
+                L = (L + R) / 2;
+                if (L + 1 == R) {
+                    if (getAvailableLANcount(R) >= N) return R;
+                    else return L;
+                }
             }
-            length--;
         }
 
-        return length;
+        return L;
     }
 
-    static int getAvailableLANcount(int length) {
-        int count = 0;
+    static long getAvailableLANcount(long length) {
+        long count = 0;
         for (int i = 0; i < K; i++) {
             count += lanCables[i] / length;
         }
