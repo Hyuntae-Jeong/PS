@@ -41,6 +41,8 @@ class Main {
     static int N, M;
     static ArrayList<Jewel> jewels;
     static Bag[] bags;
+    static boolean debug = true;
+    static long totalValue = 0;
 
     public static void main(String[] args) throws IOException {
         StringTokenizer token = new StringTokenizer(br.readLine());
@@ -50,6 +52,8 @@ class Main {
         getJewels();
         getBags();
         findPerfectBag();
+
+        System.out.print(totalValue);
     }
 
     static void getJewels() throws IOException {
@@ -65,8 +69,6 @@ class Main {
         jewels.sort((j1, j2) -> {
             if (j1.value != j2.value) return j2.value - j1.value;
             else return j2.weight - j1.weight;
-            // todo: value가 같은 경우에는 무거운거 먼저? 가벼운거 먼저? 아니면 상관없음??
-            // -> 일단은 상관 없을 것 같아서, 무게 내림차순으로 정렬함
         });
     }
 
@@ -92,11 +94,57 @@ class Main {
     }
 
     static void findPerfectBag() {
-        // 가장 값비싼 
+        // 가장 값비싼 보석부터 가방에 담는다
         for (Jewel jewel : jewels) {
-            System.out.println("value : " + jewel.value + ", weight: " + jewel.weight);
+            if(debug) System.out.println();
+            if(debug) System.out.println("value : " + jewel.value + ", weight: " + jewel.weight);
+            Bag searchedBag = binarySearchBag(jewel.weight);
+            addJewelToEmptyBag(searchedBag, jewel.value);
         }
 
+    }
+
+    static Bag binarySearchBag(int weight) {
+        int L = 0, R = M - 1, C;
+
+        while (L < R) {
+            C = (L + R) / 2;
+            if (bags[C].capacity < weight) {
+                L = C + 1;
+            } else if (bags[C].capacity > weight) {
+                R = C;
+            } else {
+                if(debug) System.out.println("C: " + C + "(" + bags[C].capacity + ")");
+                return bags[C];
+            }
+        }
+
+        if(debug) System.out.println("L: " + L + "(" + bags[L].capacity + ")" + ", R: " + R + "(" + bags[R].capacity + ")");
+
+        if (bags[L].capacity < weight) return null;
+        return bags[L];
+    }
+
+    static void addJewelToEmptyBag(Bag bag, int jewelValue) {
+        if (debug) System.out.println("first selected bag's capacity: " + bag.capacity);
+
+        while (bag != null && bag.isFull) {
+            bag = bag.postBag;
+            if (debug) System.out.println("-> " + bag.capacity);
+        }
+
+        if (bag == null) {
+            if (debug) System.out.println("no bag available");
+            return;
+        }
+
+        if (debug) System.out.println("selected bag's capacity: " + bag.capacity);
+
+        bag.isFull = true;
+        if (bag.preBag != null && bag.postBag != null) bag.preBag.postBag = bag.postBag;
+        if (bag.postBag != null && bag.preBag != null) bag.postBag.preBag = bag.preBag;
+
+        totalValue += jewelValue;
     }
 }
 
