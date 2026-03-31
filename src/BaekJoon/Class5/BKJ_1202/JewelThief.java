@@ -39,7 +39,7 @@ class Main {
     static int N, M;
     static ArrayList<Jewel> jewels;
     static Bag[] bags;
-    static boolean debug = true;
+    static boolean debug = false;
     static long totalValue = 0;
 
     public static void main(String[] args) throws IOException {
@@ -122,7 +122,7 @@ class Main {
 
         Bag initialBag = bag;
 
-        if (bag != null && bag.isFull) {
+        while (bag != null && bag.isFull) {
             bag = bag.nextBag;
             if (debug && bag != null) System.out.println("-> " + bag.capacity);
         }
@@ -137,15 +137,8 @@ class Main {
         // 1. 가방을 full 상태로 전환
         bag.isFull = true;
 
-        // 2. 현재 가방의 next가 full일 경우
-        //      현재 가방.next.next를 초기 가방.next로 설정
-        //    아닐 경우
-        //      현재 가방.next를 초기 가방.next로 설정
-        if (bag.nextBag == null) {
-            initialBag.nextBag = null;
-        } else {
-            initialBag.nextBag = bag.nextBag.isFull ? bag.nextBag.nextBag : bag.nextBag;
-        }
+        // 2. 현재 넣는 가방의 nextBag을 초기에 발견할 가방의 nextBag으로 설정한다
+        initialBag.nextBag = bag.nextBag;
 
         totalValue += jewelValue;
     }
