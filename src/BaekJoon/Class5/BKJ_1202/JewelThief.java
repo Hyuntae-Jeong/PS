@@ -22,8 +22,7 @@ class Jewel {
 class Bag {
     int capacity;
     boolean isFull;
-    Bag preBag;
-    Bag postBag;
+    Bag nextBag;
 
     Bag (int capacity) {
         this.capacity = capacity;
@@ -31,8 +30,7 @@ class Bag {
 
     Bag (int capacity, Bag preBag) {
         this.capacity = capacity;
-        this.preBag = preBag;
-        preBag.postBag = this;
+        preBag.nextBag = this;
     }
 }
 
@@ -85,12 +83,6 @@ class Main {
         for (int i = 1; i < bagInput.size(); i++) {
             bags[i] = new Bag(bagInput.get(i), bags[i-1]);
         }
-
-//        Bag deleteTest = bags[2];
-//        deleteTest.isFull = true;
-//        deleteTest.preBag.postBag = deleteTest.postBag;
-//        deleteTest.postBag.preBag = deleteTest.preBag;
-
     }
 
     static void findPerfectBag() {
@@ -114,23 +106,25 @@ class Main {
             } else if (bags[C].capacity > weight) {
                 R = C;
             } else {
-                if(debug) System.out.println("C: " + C + "(" + bags[C].capacity + ")");
+                if(debug && false) System.out.println("C: " + C + "(" + bags[C].capacity + ")");
                 return bags[C];
             }
         }
 
-        if(debug) System.out.println("L: " + L + "(" + bags[L].capacity + ")" + ", R: " + R + "(" + bags[R].capacity + ")");
+        if(debug && false) System.out.println("L: " + L + "(" + bags[L].capacity + ")" + ", R: " + R + "(" + bags[R].capacity + ")");
 
         if (bags[L].capacity < weight) return null;
         return bags[L];
     }
 
     static void addJewelToEmptyBag(Bag bag, int jewelValue) {
-        if (debug) System.out.println("first selected bag's capacity: " + bag.capacity);
+        if (debug && bag != null) System.out.println("first selected bag's capacity: " + bag.capacity);
 
-        while (bag != null && bag.isFull) {
-            bag = bag.postBag;
-            if (debug) System.out.println("-> " + bag.capacity);
+        Bag initialBag = bag;
+
+        if (bag != null && bag.isFull) {
+            bag = bag.nextBag;
+            if (debug && bag != null) System.out.println("-> " + bag.capacity);
         }
 
         if (bag == null) {
@@ -140,9 +134,18 @@ class Main {
 
         if (debug) System.out.println("selected bag's capacity: " + bag.capacity);
 
+        // 1. 가방을 full 상태로 전환
         bag.isFull = true;
-        if (bag.preBag != null && bag.postBag != null) bag.preBag.postBag = bag.postBag;
-        if (bag.postBag != null && bag.preBag != null) bag.postBag.preBag = bag.preBag;
+
+        // 2. 현재 가방의 next가 full일 경우
+        //      현재 가방.next.next를 초기 가방.next로 설정
+        //    아닐 경우
+        //      현재 가방.next를 초기 가방.next로 설정
+        if (bag.nextBag == null) {
+            initialBag.nextBag = null;
+        } else {
+            initialBag.nextBag = bag.nextBag.isFull ? bag.nextBag.nextBag : bag.nextBag;
+        }
 
         totalValue += jewelValue;
     }
