@@ -66,25 +66,20 @@ class Main {
 
     static void BFSMethod() {
         StringBuilder sb = new StringBuilder();
-        int answerCount = 0;
         Queue<Integer> queue = new ArrayDeque<>();
 
-        while (answerCount < N) {
-            for (int i = 1; i <= N; i++) {
-                if (students[i].incomingCount == 0) {
-                    queue.add(i);
-                }
+        for (int i = 1; i <= N; i++) {
+            if (students[i].incomingCount == 0) {
+                queue.add(i);
             }
+        }
 
-            while (!queue.isEmpty()) {
-                int student = queue.poll();
-                sb.append(student).append(" ");
-                answerCount++;
-
-                for (Integer next : students[student].nextStudents) {
-                    if (--students[next].incomingCount == 0) {
-                        queue.add(next);
-                    }
+        while (!queue.isEmpty()) {
+            int student = queue.poll();
+            sb.append(student).append(" ");
+            for (Integer next : students[student].nextStudents) {
+                if (--students[next].incomingCount == 0) {
+                    queue.add(next);
                 }
             }
         }
