@@ -5,79 +5,94 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayDeque;
-import java.util.Queue;
-import java.util.StringTokenizer;
+import java.util.*;
 
 class Student {
-    Student front;
-    Student back;
+    boolean isVisited;
+    Set<Integer> nextStudents;
+    int incomingCount;
 
     Student() {
-        this.front = null;
-        this.back = null;
+        nextStudents = new HashSet<>();
     }
 }
 
 class Main {
     static BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-    static int N, M;
-    static int[][] relation;
-    static boolean[] isStanding;
     static Student[] students;
-    static Queue<Integer> queue = new ArrayDeque<>();
+    static int N, M;
 
     public static void main(String[] args) throws IOException {
         StringTokenizer token = new StringTokenizer(br.readLine());
         N = Integer.parseInt(token.nextToken());
         M = Integer.parseInt(token.nextToken());
 
-        relation = new int[N + 1][N + 1];
-        isStanding = new boolean[N + 1];
         students = new Student[N + 1];
-
-        getRelation();
-        startLiningUp();
+        getInput();
+//        printInput();
+        BFSMethod();
     }
 
-    static void getRelation() throws IOException {
+    static void printInput() {
+        for (int i = 1; i <= N; i++) {
+            System.out.println("=== student " + i + " ===");
+            System.out.println("incoming count: " + students[i].incomingCount);
+            Iterator<Integer> it = students[i].nextStudents.iterator();
+
+            while (it.hasNext()) {
+                System.out.println("next: " + it.next());
+            }
+        }
+    }
+
+    static void getInput() throws IOException {
+        initializeStudents();
+
         for (int i = 0; i < M; i++) {
             StringTokenizer token = new StringTokenizer(br.readLine());
             int a = Integer.parseInt(token.nextToken());
             int b = Integer.parseInt(token.nextToken());
 
-            relation[a][b] = 1;     // b는 a 뒤에 서야한다
-            relation[b][a] = -1;    // a는 b 앞에 서야한다
+            students[a].nextStudents.add(b);
+            students[b].incomingCount++;
         }
     }
 
-    static void startLiningUp() {
-        queue.add(1);
-        isStanding[1] = true;
-        students[1] = new Student();
+    static void initializeStudents() {
+        for (int i = 1; i <= N; i++) {
+            students[i] = new Student();
+        }
+    }
 
-        while (!queue.isEmpty()) {
-            int standingKid = queue.poll();
-            for (int candidateKid = 1; candidateKid <= N; candidateKid++) {
-                if (relation[standingKid][candidateKid] == 0) continue;
-                if (isStanding[candidateKid]) continue;
+    static void BFSMethod() {
+        StringBuilder sb = new StringBuilder();
+        int answerCount = 0;
+        Queue<Integer> queue = new ArrayDeque<>();
 
-                if (relation[standingKid][candidateKid] == 1) {
-                    if (students[standingKid].back == null) {
-                        isStanding[candidateKid] = true;
-                        students[candidateKid] = new Student();
-                        students[standingKid].back = students[candidateKid];
-                        students[candidateKid].front = students[standingKid];
-                        queue.add(candidateKid);
-                    } else {
-                        // 비교하기
+        while (answerCount < N) {
+            for (int i = 1; i <= N; i++) {
+                if (students[i].incomingCount == 0) {
+                    queue.add(i);
+                }
+            }
+
+            while (!queue.isEmpty()) {
+                int student = queue.poll();
+                sb.append(student).append(" ");
+                answerCount++;
+
+                for (Integer next : students[student].nextStudents) {
+                    if (--students[next].incomingCount == 0) {
+                        queue.add(next);
                     }
-                } else if (relation[standingKid][candidateKid] == -1){
-
                 }
             }
         }
+
+        System.out.print(sb);
     }
+
+    static void DFSMethod() {}
 }
 
 public class StandInLine {
